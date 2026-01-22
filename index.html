@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>新签节点海报 - v30 自动化版</title>
+    <title>新签节点海报 - v35 最终交付版</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
@@ -20,8 +20,6 @@
             --poster-bg-color: #ffeff0;
             --element-color: var(--theme-color);
             --sub-tag-bg: var(--theme-color);
-            
-            /* 权益框 */
             --box-bg: #fff8e1;          
             --box-border: #ffcc80;      
             
@@ -77,26 +75,21 @@
         }
         .ui-btn:hover { border-color: var(--theme-color); color: var(--theme-color); background: #fffbfb; }
         .ui-btn.primary { background: var(--accent-orange); color: #fff; border: none; }
-        .ui-btn.disabled { background: #e5e7eb !important; color: #9ca3af !important; border-color: #e5e7eb !important; cursor: wait !important; pointer-events: none; }
+        .ui-btn.disabled { background: #e5e7eb !important; color: #9ca3af !important; border-color: #e5e7eb !important; cursor: not-allowed !important; pointer-events: none; opacity: 0.6; }
 
-        .draft-item {
-            padding: 10px; background: #f5f5f5; border-radius: 6px; margin-bottom: 8px;
-            font-size: 12px; display: flex; justify-content: space-between; align-items: center;
-            cursor: pointer; border: 1px solid transparent; transition: 0.2s;
+        /* 上传组件 */
+        .upload-zone {
+            background:#f9fafb; padding:15px; border-radius:12px; text-align:center; cursor:pointer; 
+            border:2px dashed #ddd; transition: all 0.2s; position: relative;
         }
-        .draft-item:hover { background: #fff; border-color: #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .upload-zone:hover { border-color: var(--theme-color); background: #fff0f0; }
+        .upload-zone-small { padding: 10px; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 10px; }
 
         .ui-slider { width: 100%; accent-color: var(--accent-orange); cursor: pointer; }
         .mini-color-picker {
             width: 100%; height: 35px; border: 1px solid #ddd; border-radius: 6px; 
             padding: 0 5px; box-sizing: border-box; cursor: pointer;
             background: #fff; display: flex; align-items: center; gap: 10px; font-size: 12px; color: #666;
-        }
-        
-        /* 简单的下拉选择框 */
-        .ui-select {
-            width: 100%; height: 35px; border: 1px solid #ddd; border-radius: 6px;
-            padding: 0 10px; font-size: 12px; color: #333; outline: none;
         }
 
         .view-size-panel { background:#fff4e6; padding:15px; border-radius:8px; border:1px solid #ffe0b2; }
@@ -135,7 +128,10 @@
             width: 100%; height: var(--header-h); 
             background: #e0e0e0; position: relative; flex-shrink: 0;
             overflow: hidden;
-            background-size: cover; background-position: top center; background-repeat: no-repeat;
+            /* 🌟 4. 强制填充整个画板宽度 */
+            background-size: cover; 
+            background-position: top center; 
+            background-repeat: no-repeat;
         }
         .poster-header::after {
             content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 300px;
@@ -157,7 +153,7 @@
             position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.05);
         }
 
-        /* 标题容器 */
+        /* 标题容器 (背景图模式) */
         .card-title-container {
             width: 100%; height: 120px;
             display: flex; justify-content: center; 
@@ -186,19 +182,19 @@
 
         .benefit-box-wrapper { position: relative; margin-top: 40px; }
         
-        /* 🌟 1. 标签自适应: 最小宽183, 高56 */
+        /* 标签自适应: 最小宽183, 高56 */
         .benefit-tag-label {
             position: absolute; top: 0; left: 0; 
-            min-width: 183px; /* 最小宽度 */
-            width: auto;      /* 自适应 */
+            min-width: 183px; 
+            width: auto;
             height: 56px; 
             background: var(--sub-tag-bg); color: #fff;
             font-size: 33px; font-weight: bold;
             display: inline-flex; justify-content: center; align-items: center;
-            padding: 0 30px; /* 左右留白 */
+            padding: 0 30px; 
             border-radius: 30px 0 30px 0;
             z-index: 5;
-            white-space: nowrap; /* 不换行 */
+            white-space: nowrap; 
         }
         
         .benefit-box {
@@ -222,7 +218,7 @@
             font-family: 'JiangChengRound', sans-serif; 
         }
 
-        /* 规则列表: 左边距 30px */
+        /* 规则列表 */
         .rule-list { 
             text-align: left; 
             padding: 20px 40px 20px 30px; 
@@ -239,9 +235,6 @@
             font-family: 'JiangChengRound', sans-serif; line-height: 46px;
         }
 
-        /* 🌟 2. 移除 Footer */
-        /* .poster-footer 被移除 */
-
         #cloned-poster-container {
             position: fixed; top: 0; left: 0; z-index: -9999; opacity: 0; pointer-events: none;
             width: 1080px; 
@@ -252,31 +245,15 @@
 
     <div class="control-panel-container">
         <div class="control-panel-content">
-            <h2>🛠️ 新签节点海报 (v30)</h2>
+            <h2>🛠️ 新签节点海报 (v35)</h2>
 
-            <div class="panel-box view-size-panel">
+            <div class="view-size-panel">
                 <div class="label-title view-size-title">
-                    <span style="font-size:16px;">📂</span>
-                    <span>我的草稿箱</span>
-                    <span id="draft-count" style="font-weight:normal; font-size:12px; margin-left:auto; color:#d97706;">0个</span>
-                </div>
-                <div style="display:flex; gap:10px; margin-bottom:10px;">
-                    <button id="save-btn" class="ui-btn primary" onclick="saveDraftAction()">保存当前</button>
-                    <button class="ui-btn" onclick="clearDrafts()" style="background:#fff; color:#666;">清空</button>
-                </div>
-                <div id="draft-list" style="max-height:100px; overflow-y:auto;">
-                    <div style="text-align:center; color:#999; font-size:12px; padding:10px;">暂无草稿</div>
-                </div>
-            </div>
-
-            <div class="view-size-panel" style="margin-top:20px;">
-                <div class="label-title view-size-title">
-                    <span style="font-size:16px;">📐</span>
-                    <span>视图与尺寸</span>
+                    <span style="font-size:14px;">视图与尺寸</span>
                 </div>
                 <div style="margin-bottom:15px;">
                     <div class="label-title" style="font-size:12px; color:#a05e03;">
-                        快捷缩放: Option/Alt + 滚轮
+                        拖拽移动: 按住空格 + 鼠标拖动
                     </div>
                     <input type="range" id="zoom-slider" class="ui-slider" min="10" max="100" value="35" oninput="setZoom(this.value)">
                 </div>
@@ -291,8 +268,41 @@
 
             <hr style="border-top:1px solid #eee; margin:20px 0;">
 
+            <div style="display:flex; gap:10px;">
+                <div style="flex:1">
+                    <div class="label-title">1. Logo 设置</div>
+                    <div class="upload-zone upload-zone-small" onclick="document.getElementById('logo-upload').click()">
+                        <span>📂 选 Logo</span>
+                        <input type="file" id="logo-upload" hidden accept="image/*" onchange="handleLogoFile(this.files[0])">
+                    </div>
+                    <img id="current-logo-img" style="display:none;" src=""> 
+                </div>
+                <div style="flex:1">
+                    <div class="label-title">2. 标题底图</div>
+                    <div class="upload-zone upload-zone-small" onclick="document.getElementById('title-bg-upload').click()">
+                        <span>📂 选底图</span>
+                        <input type="file" id="title-bg-upload" hidden accept="image/*" onchange="handleTitleBgFile(this.files[0])">
+                    </div>
+                    <img id="current-title-bg-img" style="display:none;" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAABkCAYAAAC142GAAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMTZEaa/1AAAD0klEQVR4Xu3VMQ0AAAjDMO5f80jg4wQkpLqZ2d05AgQIECAwFwjI/=="> 
+                </div>
+            </div>
+
+            <hr style="border-top:1px solid #eee; margin:20px 0;">
+
             <div>
-                <div class="label-title">🎨 全局主题 (智能匹配底图)</div>
+                <div class="label-title">3. 顶部背景图</div>
+                <div class="upload-zone" id="header-drop-area" onclick="document.getElementById('header-upload').click()">
+                    <div style="font-size:24px; margin-bottom:5px;">🖼️</div>
+                    <div style="font-size:12px; color:#666;">点击上传 / 拖拽 / Ctrl+V</div>
+                    <input type="file" id="header-upload" hidden accept="image/*" onchange="handleHeaderFile(this.files[0])">
+                </div>
+                <img id="current-header-img" style="display:none;" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTA4MCIgaGVpZ2h0PSI3MjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2UzZTNUzIiIC8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJhcmlhbCIgZm9udC1zaXplPSI0MCIgZmlsbD0iI2FhYWFhYSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+6K+35LiK5Lyg5a6j5Lyg5aSW6YOo5aSW5Zu+PC90ZXh0Pjwvc3ZnPg==">
+            </div>
+
+            <hr style="border-top:1px solid #eee; margin:20px 0;">
+
+            <div>
+                <div class="label-title">4. 全局主题 (HSB智能配色)</div>
                 <div class="color-grid">
                     <div class="color-dot active" style="background:#ff4757" onclick="applyGlobalTheme('#ff4757', this)"></div>
                     <div class="color-dot" style="background:#2196F3" onclick="applyGlobalTheme('#2196F3', this)"></div>
@@ -306,15 +316,6 @@
 
                 <div class="label-title" style="margin-top:20px;">个性化微调</div>
                 <div style="display:flex; flex-direction:column; gap:10px;">
-                    <div>
-                        <div class="label-title" style="font-weight:normal; font-size:12px;">标题底图源</div>
-                        <select id="title-bg-select" class="ui-select" onchange="changeTitleBgSource(this.value)">
-                            <option value="red">默认 (红色圆角梯形)</option>
-                            <option value="blue">蓝色底图 (title-bg-blue.png)</option>
-                            <option value="green">绿色底图 (title-bg-green.png)</option>
-                        </select>
-                    </div>
-
                     <div class="mini-color-picker" onclick="document.getElementById('bg-picker').click()">
                         <div id="bg-preview" style="width:20px; height:20px; border-radius:4px; background:#ffeff0; border:1px solid #ddd;"></div>
                         <span>海报大背景</span>
@@ -418,8 +419,7 @@
                             </div>
                         </div>
                     </div>
-                    
-                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -427,7 +427,6 @@
     <div style="display:none;">
         <img id="base-title-bg-red" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAABkCAYAAAC142GAAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMTZEaa/1AAAD0klEQVR4Xu3VMQ0AAAjDMO5f80jg4wQkpLqZ2d05AgQIECAwFwjI/==">
         <img id="current-title-bg-img" src="title-bg-red.png" onerror="this.src=document.getElementById('base-title-bg-red').src">
-        <img id="current-header-img" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTA4MCIgaGVpZ2h0PSI3MjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2UzZTNUzIiIC8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJhcmlhbCIgZm9udC1zaXplPSI0MCIgZmlsbD0iI2FhYWFhYSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+6K+35LiK5Lyg5a6j5Lyg5aSW6YOo5aSW5Zu+PC90ZXh0Pjwvc3ZnPg==">
     </div>
 
     <div id="cloned-poster-container"></div>
@@ -460,7 +459,7 @@
         // --- 核心：图片染色 ---
         function tintImage(imgSrc, color, callback) {
             const img = new Image();
-            img.crossOrigin = "Anonymous"; // 尝试处理本地跨域
+            img.crossOrigin = "Anonymous"; 
             img.src = imgSrc;
             img.onload = () => {
                 const canvas = document.createElement('canvas');
@@ -472,50 +471,20 @@
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 callback(canvas.toDataURL());
             };
-            // 如果本地文件加载失败(无服务环境)，则不染色直接回调原图或占位
             img.onerror = () => { console.warn("Image load failed for tinting"); };
         }
 
         function applyTitleBg(color) {
             const imgEl = document.getElementById('current-title-bg-img');
-            // 如果图片加载成功，使用它进行染色
-            if(imgEl.complete && imgEl.naturalWidth > 0) {
-                tintImage(imgEl.src, color, (tintedUrl) => {
-                    document.querySelectorAll('.card-title-container').forEach(el => {
-                        el.style.backgroundImage = `url('${tintedUrl}')`;
-                    });
+            const src = imgEl.src || document.getElementById('base-title-bg-red').src;
+            tintImage(src, color, (tintedUrl) => {
+                document.querySelectorAll('.card-title-container').forEach(el => {
+                    el.style.backgroundImage = `url('${tintedUrl}')`;
                 });
-            } else {
-                // 如果图片还在加载，等加载完再染
-                imgEl.onload = () => applyTitleBg(color);
-            }
+            });
         }
 
-        // --- 🌟 3. 切换标题底图源 ---
-        function changeTitleBgSource(val) {
-            const imgEl = document.getElementById('current-title-bg-img');
-            // 尝试读取本地对应颜色的文件
-            // 注意：这需要本地有 title-bg-blue.png 等文件
-            // 如果是 red (默认)，尝试读取 title-bg-red.png，失败回滚到 Base64
-            if(val === 'red') {
-                imgEl.src = "title-bg-red.png";
-                imgEl.onerror = () => imgEl.src = document.getElementById('base-title-bg-red').src;
-            } else {
-                imgEl.src = `title-bg-${val}.png`;
-                // 如果没有对应的蓝色/绿色图，就用红色图染色
-                imgEl.onerror = () => {
-                    console.log(`Missing title-bg-${val}.png, falling back to tinting red base.`);
-                    imgEl.src = document.getElementById('base-title-bg-red').src; 
-                };
-            }
-            // 切换源后重新应用当前颜色染色
-            setTimeout(() => {
-                const currentColor = getComputedStyle(document.documentElement).getPropertyValue('--element-color').trim();
-                applyTitleBg(currentColor);
-            }, 100);
-        }
-
-        // --- 缩放/拖拽 ---
+        // --- 缩放/拖拽 (v35: 移除滚轮) ---
         let currentZoom = 0.35, translateX = 0, translateY = 0, isSpaceDown = false, isDragging = false, startX, startY;
         const zoomWrapper = document.getElementById('zoom-wrapper');
         const previewArea = document.getElementById('preview-area');
@@ -532,16 +501,6 @@
         window.addEventListener('keydown', (e) => { if (e.code === 'Space' && !isSpaceDown) { isSpaceDown = true; previewArea.classList.add('grab-mode'); e.preventDefault(); } });
         window.addEventListener('keyup', (e) => { if (e.code === 'Space') { isSpaceDown = false; previewArea.classList.remove('grab-mode', 'grabbing'); isDragging = false; } });
         
-        // 🌟 修复滚轮 passive: false
-        previewArea.addEventListener('wheel', (e) => {
-            if (e.altKey) { 
-                e.preventDefault(); 
-                const delta = e.deltaY > 0 ? 0.9 : 1.1; 
-                currentZoom = Math.min(Math.max(currentZoom, 0.1), 3); 
-                updateTransform(); 
-            }
-        }, { passive: false });
-
         previewArea.addEventListener('mousedown', (e) => { if (isSpaceDown) { isDragging = true; startX = e.clientX; startY = e.clientY; previewArea.classList.add('grabbing'); } });
         window.addEventListener('mousemove', (e) => {
             if (isDragging && isSpaceDown) {
@@ -592,97 +551,110 @@
         function updateBoxBorderColor(hex) { document.documentElement.style.setProperty('--box-border', hex); }
         function applyTextColor(color) { document.execCommand('styleWithCSS', false, true); document.execCommand('foreColor', false, color); }
 
-        // 保存 & 下载
-        const STORAGE_KEY = 'poster_drafts_v30';
-        function saveDraftAction() {
-            const btn = document.getElementById('save-btn'); btn.innerText = '保存中...'; btn.disabled = true;
-            // 简易保存，不压缩大图了，直接存配置
-            const state = {
-                time: Date.now(),
-                colors: {
-                    theme: getComputedStyle(document.documentElement).getPropertyValue('--theme-color'),
-                    bg: getComputedStyle(document.documentElement).getPropertyValue('--poster-bg-color'),
-                    ele: getComputedStyle(document.documentElement).getPropertyValue('--element-color'),
-                    boxBg: getComputedStyle(document.documentElement).getPropertyValue('--box-bg'),
-                    boxBorder: getComputedStyle(document.documentElement).getPropertyValue('--box-border')
-                },
-                content: {
-                    t1: document.getElementById('txt-title-1').innerHTML,
-                    c1: document.getElementById('card-content-1').innerHTML,
-                    t2: document.getElementById('txt-title-2').innerHTML,
-                    c2: document.getElementById('card-content-2').innerHTML
-                },
-                headerHeight: getComputedStyle(document.documentElement).getPropertyValue('--header-h').replace('px','')
-            };
-            const drafts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-            drafts.unshift(state); if(drafts.length > 5) drafts.pop();
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(drafts));
-                alert('✅ 草稿已保存 (图片需重新上传)');
-            } catch(e) { alert('保存失败'); }
-            btn.innerText = '保存当前'; btn.disabled = false; loadDrafts();
+        // 文件处理
+        function handleHeaderFile(file) {
+            if(file) { const reader = new FileReader(); reader.onload = (e) => { document.getElementById('current-header-img').src = e.target.result; document.getElementById('poster-header').style.backgroundImage = `url('${e.target.result}')`; }; reader.readAsDataURL(file); }
         }
-        function loadDrafts() {
-            const list = document.getElementById('draft-list'); list.innerHTML = '';
-            const drafts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-            document.getElementById('draft-count').innerText = drafts.length + '个';
-            drafts.forEach(d => {
-                const div = document.createElement('div'); div.className = 'draft-item';
-                div.innerHTML = `📝 草稿 ${new Date(d.time).toLocaleTimeString()}`;
-                div.onclick = () => {
-                    document.documentElement.style.setProperty('--theme-color', d.colors.theme);
-                    updateSingleColor('--poster-bg-color', d.colors.bg, 'bg-preview');
-                    updateElementColor(d.colors.ele);
-                    updateBoxBgColor(d.colors.boxBg);
-                    updateBoxBorderColor(d.colors.boxBorder);
-                    document.getElementById('txt-title-1').innerHTML = d.content.t1;
-                    document.getElementById('card-content-1').innerHTML = d.content.c1;
-                    document.getElementById('txt-title-2').innerHTML = d.content.t2;
-                    document.getElementById('card-content-2').innerHTML = d.content.c2;
-                    setHeaderHeight(d.headerHeight || 720);
-                };
-                list.appendChild(div);
+        function handleLogoFile(file) {
+            if(file) { const reader = new FileReader(); reader.onload = (e) => { document.getElementById('current-logo-img').src = e.target.result; document.getElementById('poster-logo-display').src = e.target.result; }; reader.readAsDataURL(file); }
+        }
+        function handleTitleBgFile(file) {
+            if(file) { 
+                const reader = new FileReader(); 
+                reader.onload = (e) => { 
+                    document.getElementById('current-title-bg-img').src = e.target.result; 
+                    const currentColor = getComputedStyle(document.documentElement).getPropertyValue('--element-color').trim();
+                    applyTitleBg(currentColor);
+                }; 
+                reader.readAsDataURL(file); 
+            }
+        }
+        document.addEventListener('paste', e => {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (let index in items) {
+                const item = items[index];
+                if (item.kind === 'file' && item.type.startsWith('image/')) handleHeaderFile(item.getAsFile());
+            }
+        });
+        function setupHeaderDrag() {
+            const el = document.getElementById('header-drop-area');
+            el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('drag-over'); });
+            el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
+            el.addEventListener('drop', e => {
+                e.preventDefault(); el.classList.remove('drag-over');
+                handleHeaderFile(e.dataTransfer.files[0]);
             });
         }
-        function clearDrafts() { localStorage.removeItem(STORAGE_KEY); loadDrafts(); }
 
+        // 🌟 修复下载 (错误处理增强)
         function startDownload() {
-            const btn = document.getElementById('download-btn'); btn.classList.add('disabled'); btn.innerText = '⏳ 合成中...';
-            const clone = document.getElementById('poster').cloneNode(true);
-            const container = document.getElementById('cloned-poster-container');
-            container.innerHTML = '';
+            const btn = document.getElementById('download-btn'); btn.classList.add('disabled'); btn.innerText = '⏳ 合成中...'; btn.disabled = true;
             
+            const originalPoster = document.getElementById('poster');
+            const cloneContainer = document.getElementById('cloned-poster-container');
+            cloneContainer.innerHTML = '';
+            
+            const clone = originalPoster.cloneNode(true);
             clone.style.transform = 'none'; clone.style.position = 'absolute'; clone.style.top = '0'; clone.style.left = '0';
             clone.style.width = '1080px'; clone.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--poster-bg-color');
             clone.style.overflow = 'visible';
 
-            // 修复头图
+            // 修复头图 (背景图)
             const hSrc = document.getElementById('current-header-img').src;
             const hH = getComputedStyle(document.documentElement).getPropertyValue('--header-h');
             const hDiv = clone.querySelector('.poster-header');
-            hDiv.style.backgroundImage = `url('${hSrc}')`; hDiv.style.height = hH; hDiv.style.backgroundSize = 'cover';
+            // 🌟 4. 强制填充
+            hDiv.style.backgroundImage = `url('${hSrc}')`; 
+            hDiv.style.height = hH; 
+            hDiv.style.backgroundSize = 'cover';
+            hDiv.style.backgroundPosition = 'top center';
+            
+            // 确保img标签模式下也cover (如果被替换的话)
+            // 这里我们保持 background-image 模式，因为它在v23中被验证为最佳
 
             // 修复标题背景
             const tSrc = document.querySelectorAll('.card-title-container')[0].style.backgroundImage;
             clone.querySelectorAll('.card-title-container').forEach(el => el.style.backgroundImage = tSrc);
 
-            // Logo
-            const lSrc = document.querySelector('.poster-logo img').src;
+            // 修复Logo (优先取显示中的src)
+            const displayLogo = document.getElementById('poster-logo-display');
+            const lSrc = (displayLogo.complete && displayLogo.naturalWidth > 0) ? displayLogo.src : document.getElementById('current-logo-img').src;
             clone.querySelector('.poster-logo img').src = lSrc;
 
-            container.appendChild(clone);
+            cloneContainer.appendChild(clone);
 
             setTimeout(() => {
-                html2canvas(clone, { scale: 3, useCORS: true, backgroundColor: null }).then(canvas => {
+                html2canvas(clone, { 
+                    scale: 3, useCORS: true, backgroundColor: null 
+                }).then(canvas => {
                     canvas.toBlob(blob => {
                         saveAs(blob, 'Poster_HD.png');
-                        container.innerHTML = ''; btn.classList.remove('disabled'); btn.innerText = '⬇️ 下载高清海报';
+                        cloneContainer.innerHTML = ''; 
+                        btn.classList.remove('disabled'); btn.innerText = '⬇️ 下载高清海报'; btn.disabled = false;
                     });
+                }).catch(err => {
+                    console.error(err);
+                    let msg = "合成失败！\n";
+                    if(err.name === 'SecurityError' || err.message.includes('tainted')) {
+                        msg += "原因：图片存在跨域限制。\n\n解决方法：\n1. 请点击左侧【1. Logo上传】和【3. 顶部背景图】重新上传图片。\n2. 或使用 Chrome 浏览器/Live Server 运行。";
+                    } else {
+                        msg += "未知错误，请重试。";
+                    }
+                    alert(msg);
+                    btn.classList.remove('disabled'); btn.innerText = '⬇️ 下载高清海报'; btn.disabled = false;
                 });
             }, 800);
+
+            // 超时保护
+            setTimeout(() => {
+                if(btn.disabled) {
+                    btn.classList.remove('disabled'); btn.innerText = '⬇️ 下载高清海报'; btn.disabled = false;
+                    alert("响应超时。请检查是否已上传Logo，或尝试刷新页面。");
+                }
+            }, 5000);
         }
 
-        window.onload = () => { loadDrafts(); initView(); applyTitleBg('#ff4757'); }; 
+        window.onload = () => { setupHeaderDrag(); initView(); applyTitleBg('#ff4757'); }; 
     </script>
     <div id="cloned-poster-container" style="position:fixed; top:0; left:0; z-index:-999; opacity:0;"></div>
 </body>
