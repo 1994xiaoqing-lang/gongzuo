@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>新签节点海报 - v35 最终交付版</title>
+    <title>新签节点海报 - v36 自动读取版</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
@@ -83,7 +83,6 @@
             border:2px dashed #ddd; transition: all 0.2s; position: relative;
         }
         .upload-zone:hover { border-color: var(--theme-color); background: #fff0f0; }
-        .upload-zone-small { padding: 10px; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 10px; }
 
         .ui-slider { width: 100%; accent-color: var(--accent-orange); cursor: pointer; }
         .mini-color-picker {
@@ -128,10 +127,7 @@
             width: 100%; height: var(--header-h); 
             background: #e0e0e0; position: relative; flex-shrink: 0;
             overflow: hidden;
-            /* 🌟 4. 强制填充整个画板宽度 */
-            background-size: cover; 
-            background-position: top center; 
-            background-repeat: no-repeat;
+            background-size: cover; background-position: top center; background-repeat: no-repeat;
         }
         .poster-header::after {
             content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 300px;
@@ -153,7 +149,7 @@
             position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.05);
         }
 
-        /* 标题容器 (背景图模式) */
+        /* 标题容器 */
         .card-title-container {
             width: 100%; height: 120px;
             display: flex; justify-content: center; 
@@ -245,7 +241,7 @@
 
     <div class="control-panel-container">
         <div class="control-panel-content">
-            <h2>🛠️ 新签节点海报 (v35)</h2>
+            <h2>🛠️ 新签节点海报 (v36)</h2>
 
             <div class="view-size-panel">
                 <div class="label-title view-size-title">
@@ -268,29 +264,8 @@
 
             <hr style="border-top:1px solid #eee; margin:20px 0;">
 
-            <div style="display:flex; gap:10px;">
-                <div style="flex:1">
-                    <div class="label-title">1. Logo 设置</div>
-                    <div class="upload-zone upload-zone-small" onclick="document.getElementById('logo-upload').click()">
-                        <span>📂 选 Logo</span>
-                        <input type="file" id="logo-upload" hidden accept="image/*" onchange="handleLogoFile(this.files[0])">
-                    </div>
-                    <img id="current-logo-img" style="display:none;" src=""> 
-                </div>
-                <div style="flex:1">
-                    <div class="label-title">2. 标题底图</div>
-                    <div class="upload-zone upload-zone-small" onclick="document.getElementById('title-bg-upload').click()">
-                        <span>📂 选底图</span>
-                        <input type="file" id="title-bg-upload" hidden accept="image/*" onchange="handleTitleBgFile(this.files[0])">
-                    </div>
-                    <img id="current-title-bg-img" style="display:none;" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAABkCAYAAAC142GAAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMTZEaa/1AAAD0klEQVR4Xu3VMQ0AAAjDMO5f80jg4wQkpLqZ2d05AgQIECAwFwjI/=="> 
-                </div>
-            </div>
-
-            <hr style="border-top:1px solid #eee; margin:20px 0;">
-
             <div>
-                <div class="label-title">3. 顶部背景图</div>
+                <div class="label-title">1. 顶部背景图</div>
                 <div class="upload-zone" id="header-drop-area" onclick="document.getElementById('header-upload').click()">
                     <div style="font-size:24px; margin-bottom:5px;">🖼️</div>
                     <div style="font-size:12px; color:#666;">点击上传 / 拖拽 / Ctrl+V</div>
@@ -302,7 +277,7 @@
             <hr style="border-top:1px solid #eee; margin:20px 0;">
 
             <div>
-                <div class="label-title">4. 全局主题 (HSB智能配色)</div>
+                <div class="label-title">2. 全局主题 (HSB智能配色)</div>
                 <div class="color-grid">
                     <div class="color-dot active" style="background:#ff4757" onclick="applyGlobalTheme('#ff4757', this)"></div>
                     <div class="color-dot" style="background:#2196F3" onclick="applyGlobalTheme('#2196F3', this)"></div>
@@ -359,7 +334,7 @@
         <div id="zoom-wrapper">
             <div id="poster">
                 <div class="poster-logo">
-                    <img id="poster-logo-display" src="logo.png" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNjkgOTIiPjx0ZXh0IHg9IjEwIiB5PSI1MCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiM2NjYiPuaXoExvZ288L3RleHQ+PC9zdmc+'" alt="Logo">
+                    <img id="poster-logo-display" src="logo.png" onerror="this.src=document.getElementById('base-logo-data').src" alt="Logo">
                 </div>
 
                 <div class="poster-header" id="poster-header" style="background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTA4MCIgaGVpZ2h0PSI3MjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2UzZTNUzIiIC8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJhcmlhbCIgZm9udC1zaXplPSI0MCIgZmlsbD0iI2FhYWFhYSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+6K+35LiK5Lyg5a6j5Lyg5aSW6YOo5aSW5Zu+PC90ZXh0Pjwvc3ZnPg==');">
@@ -425,6 +400,7 @@
     </div>
     
     <div style="display:none;">
+        <img id="base-logo-data" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNjkgOTIiPjx0ZXh0IHg9IjEwIiB5PSI1MCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiM2NjYiPuaXoExvZ288L3RleHQ+PC9zdmc+">
         <img id="base-title-bg-red" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAABkCAYAAAC142GAAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMTZEaa/1AAAD0klEQVR4Xu3VMQ0AAAjDMO5f80jg4wQkpLqZ2d05AgQIECAwFwjI/==">
         <img id="current-title-bg-img" src="title-bg-red.png" onerror="this.src=document.getElementById('base-title-bg-red').src">
     </div>
@@ -471,12 +447,12 @@
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 callback(canvas.toDataURL());
             };
-            img.onerror = () => { console.warn("Image load failed for tinting"); };
+            img.onerror = () => { console.warn("Image tinting failed, using original"); callback(imgSrc); };
         }
 
         function applyTitleBg(color) {
             const imgEl = document.getElementById('current-title-bg-img');
-            const src = imgEl.src || document.getElementById('base-title-bg-red').src;
+            const src = imgEl.src;
             tintImage(src, color, (tintedUrl) => {
                 document.querySelectorAll('.card-title-container').forEach(el => {
                     el.style.backgroundImage = `url('${tintedUrl}')`;
@@ -484,7 +460,7 @@
             });
         }
 
-        // --- 缩放/拖拽 (v35: 移除滚轮) ---
+        // --- 缩放/拖拽 ---
         let currentZoom = 0.35, translateX = 0, translateY = 0, isSpaceDown = false, isDragging = false, startX, startY;
         const zoomWrapper = document.getElementById('zoom-wrapper');
         const previewArea = document.getElementById('preview-area');
@@ -555,20 +531,6 @@
         function handleHeaderFile(file) {
             if(file) { const reader = new FileReader(); reader.onload = (e) => { document.getElementById('current-header-img').src = e.target.result; document.getElementById('poster-header').style.backgroundImage = `url('${e.target.result}')`; }; reader.readAsDataURL(file); }
         }
-        function handleLogoFile(file) {
-            if(file) { const reader = new FileReader(); reader.onload = (e) => { document.getElementById('current-logo-img').src = e.target.result; document.getElementById('poster-logo-display').src = e.target.result; }; reader.readAsDataURL(file); }
-        }
-        function handleTitleBgFile(file) {
-            if(file) { 
-                const reader = new FileReader(); 
-                reader.onload = (e) => { 
-                    document.getElementById('current-title-bg-img').src = e.target.result; 
-                    const currentColor = getComputedStyle(document.documentElement).getPropertyValue('--element-color').trim();
-                    applyTitleBg(currentColor);
-                }; 
-                reader.readAsDataURL(file); 
-            }
-        }
         document.addEventListener('paste', e => {
             const items = (e.clipboardData || e.originalEvent.clipboardData).items;
             for (let index in items) {
@@ -586,7 +548,7 @@
             });
         }
 
-        // 🌟 修复下载 (错误处理增强)
+        // 🌟 核心：下载逻辑
         function startDownload() {
             const btn = document.getElementById('download-btn'); btn.classList.add('disabled'); btn.innerText = '⏳ 合成中...'; btn.disabled = true;
             
@@ -599,27 +561,32 @@
             clone.style.width = '1080px'; clone.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--poster-bg-color');
             clone.style.overflow = 'visible';
 
-            // 修复头图 (背景图)
+            // 1. 头图
             const hSrc = document.getElementById('current-header-img').src;
             const hH = getComputedStyle(document.documentElement).getPropertyValue('--header-h');
             const hDiv = clone.querySelector('.poster-header');
-            // 🌟 4. 强制填充
-            hDiv.style.backgroundImage = `url('${hSrc}')`; 
-            hDiv.style.height = hH; 
-            hDiv.style.backgroundSize = 'cover';
-            hDiv.style.backgroundPosition = 'top center';
-            
-            // 确保img标签模式下也cover (如果被替换的话)
-            // 这里我们保持 background-image 模式，因为它在v23中被验证为最佳
+            hDiv.style.backgroundImage = `url('${hSrc}')`; hDiv.style.height = hH; hDiv.style.backgroundSize = 'cover'; hDiv.style.backgroundPosition = 'top center';
 
-            // 修复标题背景
+            // 2. 标题底图
             const tSrc = document.querySelectorAll('.card-title-container')[0].style.backgroundImage;
             clone.querySelectorAll('.card-title-container').forEach(el => el.style.backgroundImage = tSrc);
 
-            // 修复Logo (优先取显示中的src)
+            // 3. Logo (尝试转Base64以防CORS)
+            const logoEl = clone.querySelector('.poster-logo img');
             const displayLogo = document.getElementById('poster-logo-display');
-            const lSrc = (displayLogo.complete && displayLogo.naturalWidth > 0) ? displayLogo.src : document.getElementById('current-logo-img').src;
-            clone.querySelector('.poster-logo img').src = lSrc;
+            if(displayLogo.complete && displayLogo.naturalWidth > 0) {
+                // 如果本地显示成功，尝试画到Canvas转Base64
+                try {
+                    const c = document.createElement('canvas'); c.width = displayLogo.naturalWidth; c.height = displayLogo.naturalHeight;
+                    c.getContext('2d').drawImage(displayLogo, 0, 0);
+                    logoEl.src = c.toDataURL();
+                } catch(e) {
+                    console.warn("CORS blocked local logo download, using fallback");
+                    logoEl.src = document.getElementById('base-logo-data').src;
+                }
+            } else {
+                logoEl.src = document.getElementById('base-logo-data').src;
+            }
 
             cloneContainer.appendChild(clone);
 
@@ -634,22 +601,20 @@
                     });
                 }).catch(err => {
                     console.error(err);
-                    let msg = "合成失败！\n";
+                    let msg = "合成失败！\n原因：";
                     if(err.name === 'SecurityError' || err.message.includes('tainted')) {
-                        msg += "原因：图片存在跨域限制。\n\n解决方法：\n1. 请点击左侧【1. Logo上传】和【3. 顶部背景图】重新上传图片。\n2. 或使用 Chrome 浏览器/Live Server 运行。";
-                    } else {
-                        msg += "未知错误，请重试。";
-                    }
+                        msg += "检测到跨域图片限制。\n请使用 VS Code 的 Live Server 打开此文件，或使用 Chrome 浏览器。";
+                    } else { msg += "未知错误，请重试。"; }
                     alert(msg);
                     btn.classList.remove('disabled'); btn.innerText = '⬇️ 下载高清海报'; btn.disabled = false;
                 });
             }, 800);
 
-            // 超时保护
+            // 5秒超时恢复
             setTimeout(() => {
                 if(btn.disabled) {
                     btn.classList.remove('disabled'); btn.innerText = '⬇️ 下载高清海报'; btn.disabled = false;
-                    alert("响应超时。请检查是否已上传Logo，或尝试刷新页面。");
+                    alert("响应超时。建议检查图片是否过大，或刷新页面重试。");
                 }
             }, 5000);
         }
