@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新签节点海报 - v30 自动化版</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        @font-face {
+            font-family: 'JiangChengRound';
+            src: url('江城圆体-600W.ttf') format('truetype'),
+                 url('江城圆体 600W.ttf') format('truetype'); 
+            font-weight: 600; font-style: normal;
+        }
+
+        :root {
+            /* 全局变量 */
+            --theme-color: #ff4757; 
+            --poster-bg-color: #ffeff0;
+            --element-color: var(--theme-color);
+            --sub-tag-bg: var(--theme-color);
+            
+            /* 权益框 */
+            --box-bg: #fff8e1;          
+            --box-border: #ffcc80;      
+            
+            --title-text-color: #ffffff;
+            --ui-bg: #f0f2f5;
+            --ui-panel-bg: #ffffff;
+            --ui-border: #e1e4e8;
+            --poster-w: 1080px;
+            --header-h: 720px;
+            --accent-orange: #f59e0b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft YaHei", sans-serif;
+            margin: 0; background-color: var(--ui-bg);
+            display: flex; height: 100vh; overflow: hidden; color: #333;
+            user-select: none; 
+        }
+
+        /* 左侧控制台 */
+        .control-panel-container {
+            width: 420px; background: var(--ui-panel-bg);
+            box-sizing: border-box;
+            border-right: 1px solid var(--ui-border);
+            display: flex; flex-direction: column;
+            flex-shrink: 0; z-index: 100;
+            box-shadow: 5px 0 25px rgba(0,0,0,0.03);
+        }
+
+        .control-panel-content {
+            padding: 20px;
+            overflow-y: auto; display: flex; flex-direction: column; gap: 20px;
+            height: 100%;
+        }
+
+        h2 { margin: 0; font-size: 20px; font-weight: 800; color: #1a1a1a; display: flex; align-items: center; gap: 10px; }
+        .label-title { font-size: 13px; font-weight: 700; color: #666; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; text-transform: uppercase; letter-spacing: 0.5px;}
+
+        /* UI组件 */
+        .color-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+        .color-dot { 
+            aspect-ratio: 1; border-radius: 8px; cursor: pointer; border: 3px solid transparent; 
+            transition: transform 0.2s; position: relative;
+        }
+        .color-dot:hover { transform: translateY(-2px); }
+        .color-dot.active { border-color: #333; transform: scale(0.9); }
+
+        .ui-btn {
+            border: 1px solid #ddd; background: #fff; padding: 10px 15px; border-radius: 8px;
+            cursor: pointer; font-size: 14px; font-weight: 600; color: #555; transition: all 0.2s;
+            flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .ui-btn:hover { border-color: var(--theme-color); color: var(--theme-color); background: #fffbfb; }
+        .ui-btn.primary { background: var(--accent-orange); color: #fff; border: none; }
+        .ui-btn.disabled { background: #e5e7eb !important; color: #9ca3af !important; border-color: #e5e7eb !important; cursor: wait !important; pointer-events: none; }
+
+        .draft-item {
+            padding: 10px; background: #f5f5f5; border-radius: 6px; margin-bottom: 8px;
+            font-size: 12px; display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer; border: 1px solid transparent; transition: 0.2s;
+        }
+        .draft-item:hover { background: #fff; border-color: #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+        .ui-slider { width: 100%; accent-color: var(--accent-orange); cursor: pointer; }
+        .mini-color-picker {
+            width: 100%; height: 35px; border: 1px solid #ddd; border-radius: 6px; 
+            padding: 0 5px; box-sizing: border-box; cursor: pointer;
+            background: #fff; display: flex; align-items: center; gap: 10px; font-size: 12px; color: #666;
+        }
+        
+        /* 简单的下拉选择框 */
+        .ui-select {
+            width: 100%; height: 35px; border: 1px solid #ddd; border-radius: 6px;
+            padding: 0 10px; font-size: 12px; color: #333; outline: none;
+        }
+
+        .view-size-panel { background:#fff4e6; padding:15px; border-radius:8px; border:1px solid #ffe0b2; }
+        .view-size-title { color:#d97706; margin-bottom:15px; font-weight:bold; display:flex; align-items:center; gap:5px; }
+
+        /* 右侧预览区 */
+        .preview-area {
+            flex: 1; background: #eef2f6; overflow: hidden; position: relative;
+            cursor: default;
+            background-image: radial-gradient(#d0d4d9 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        .preview-area.grab-mode { cursor: grab; }
+        .preview-area.grabbing { cursor: grabbing; }
+
+        #zoom-wrapper {
+            position: absolute; top: 50%; left: 50%; 
+            box-shadow: 0 40px 120px rgba(0,0,0,0.15);
+        }
+
+        /* --- 海报样式 (1080px) --- */
+        #poster {
+            width: var(--poster-w); min-height: 1500px;
+            background-color: var(--poster-bg-color); 
+            position: relative; display: flex; flex-direction: column;
+            overflow: visible; 
+        }
+
+        .poster-logo {
+            position: absolute; top: 0; left: 0;
+            width: 269px; height: 92px; z-index: 50; 
+        }
+        .poster-logo img { width: 100%; height: 100%; display: block; object-fit: contain; object-position: left top; }
+
+        .poster-header {
+            width: 100%; height: var(--header-h); 
+            background: #e0e0e0; position: relative; flex-shrink: 0;
+            overflow: hidden;
+            background-size: cover; background-position: top center; background-repeat: no-repeat;
+        }
+        .poster-header::after {
+            content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 300px;
+            background: linear-gradient(to bottom, transparent, var(--poster-bg-color));
+            pointer-events: none;
+        }
+
+        .content-container {
+            position: relative; z-index: 10;
+            padding: 0 45px 80px 45px;
+            margin-top: -100px; 
+            display: flex; flex-direction: column; gap: 45px; 
+        }
+
+        .card {
+            background: #fff; 
+            border-radius: 50px; 
+            padding: 0 0 60px 0; 
+            position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.05);
+        }
+
+        /* 标题容器 */
+        .card-title-container {
+            width: 100%; height: 120px;
+            display: flex; justify-content: center; 
+            position: relative; background: transparent; z-index: 20;
+            background-repeat: no-repeat;
+            background-position: center top;
+            background-size: auto 100%; 
+        }
+
+        .title-text-span {
+            position: relative; z-index: 2;
+            color: var(--title-text-color);
+            font-family: 'JiangChengRound', "Microsoft YaHei", sans-serif;
+            font-size: 60px; 
+            font-weight: 600; letter-spacing: 4px;
+            line-height: 100px; text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            outline: none;
+        }
+
+        .card-body { padding: 40px 60px 0 60px; text-align: center; }
+        
+        .promo-text { 
+            font-size: 40px; 
+            line-height: 1.5; color: #333; font-weight: bold; margin-bottom: 50px; 
+        }
+
+        .benefit-box-wrapper { position: relative; margin-top: 40px; }
+        
+        /* 🌟 1. 标签自适应: 最小宽183, 高56 */
+        .benefit-tag-label {
+            position: absolute; top: 0; left: 0; 
+            min-width: 183px; /* 最小宽度 */
+            width: auto;      /* 自适应 */
+            height: 56px; 
+            background: var(--sub-tag-bg); color: #fff;
+            font-size: 33px; font-weight: bold;
+            display: inline-flex; justify-content: center; align-items: center;
+            padding: 0 30px; /* 左右留白 */
+            border-radius: 30px 0 30px 0;
+            z-index: 5;
+            white-space: nowrap; /* 不换行 */
+        }
+        
+        .benefit-box {
+            background: var(--box-bg); 
+            border: 4px solid var(--box-border);
+            border-radius: 30px; 
+            padding: 80px 30px 40px 30px; 
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 12px 20px; 
+            text-align: left; position: relative; 
+        }
+        
+        .b-item { 
+            font-size: 40px; 
+            color: #333; display: flex; align-items: baseline; font-weight: 500; 
+        }
+        .b-highlight { 
+            color: var(--element-color); font-weight: bold; 
+            font-size: 40px; 
+            margin-right: 0px; 
+            font-family: 'JiangChengRound', sans-serif; 
+        }
+
+        /* 规则列表: 左边距 30px */
+        .rule-list { 
+            text-align: left; 
+            padding: 20px 40px 20px 30px; 
+            display: flex; flex-direction: column; gap: 24px; 
+        }
+        .rule-item { 
+            display: flex; gap: 20px; align-items: flex-start; 
+            font-size: 36px; color: #444; line-height: 1.6; 
+        }
+        .rule-num {
+            width: 46px; height: 46px; background: var(--element-color); color: #fff;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 40px; font-weight: bold; flex-shrink: 0; margin-top: 5px;
+            font-family: 'JiangChengRound', sans-serif; line-height: 46px;
+        }
+
+        /* 🌟 2. 移除 Footer */
+        /* .poster-footer 被移除 */
+
+        #cloned-poster-container {
+            position: fixed; top: 0; left: 0; z-index: -9999; opacity: 0; pointer-events: none;
+            width: 1080px; 
+        }
+    </style>
+</head>
+<body>
+
+    <div class="control-panel-container">
+        <div class="control-panel-content">
+            <h2>🛠️ 新签节点海报 (v30)</h2>
+
+            <div class="panel-box view-size-panel">
+                <div class="label-title view-size-title">
+                    <span style="font-size:16px;">📂</span>
+                    <span>我的草稿箱</span>
+                    <span id="draft-count" style="font-weight:normal; font-size:12px; margin-left:auto; color:#d97706;">0个</span>
+                </div>
+                <div style="display:flex; gap:10px; margin-bottom:10px;">
+                    <button id="save-btn" class="ui-btn primary" onclick="saveDraftAction()">保存当前</button>
+                    <button class="ui-btn" onclick="clearDrafts()" style="background:#fff; color:#666;">清空</button>
+                </div>
+                <div id="draft-list" style="max-height:100px; overflow-y:auto;">
+                    <div style="text-align:center; color:#999; font-size:12px; padding:10px;">暂无草稿</div>
+                </div>
+            </div>
+
+            <div class="view-size-panel" style="margin-top:20px;">
+                <div class="label-title view-size-title">
+                    <span style="font-size:16px;">📐</span>
+                    <span>视图与尺寸</span>
+                </div>
+                <div style="margin-bottom:15px;">
+                    <div class="label-title" style="font-size:12px; color:#a05e03;">
+                        快捷缩放: Option/Alt + 滚轮
+                    </div>
+                    <input type="range" id="zoom-slider" class="ui-slider" min="10" max="100" value="35" oninput="setZoom(this.value)">
+                </div>
+                <div>
+                    <div class="label-title" style="font-size:12px; color:#a05e03; display:flex; justify-content:space-between;">
+                        <span>顶部背景高度</span>
+                        <span id="header-h-text">720px</span>
+                    </div>
+                    <input type="range" id="header-h-slider" class="ui-slider" min="500" max="1200" value="720" oninput="setHeaderHeight(this.value)">
+                </div>
+            </div>
+
+            <hr style="border-top:1px solid #eee; margin:20px 0;">
+
+            <div>
+                <div class="label-title">🎨 全局主题 (智能匹配底图)</div>
+                <div class="color-grid">
+                    <div class="color-dot active" style="background:#ff4757" onclick="applyGlobalTheme('#ff4757', this)"></div>
+                    <div class="color-dot" style="background:#2196F3" onclick="applyGlobalTheme('#2196F3', this)"></div>
+                    <div class="color-dot" style="background:#4CAF50" onclick="applyGlobalTheme('#4CAF50', this)"></div>
+                    <div class="color-dot" style="background:#FF9800" onclick="applyGlobalTheme('#FF9800', this)"></div>
+                    <div class="color-dot" style="background:#9C27B0" onclick="applyGlobalTheme('#9C27B0', this)"></div>
+                    <div class="color-dot" style="background:conic-gradient(from 180deg, red, yellow, lime, cyan, blue, magenta, red); overflow:hidden;">
+                        <input type="color" oninput="applyGlobalTheme(this.value, this.parentElement)" style="opacity:0; width:100%; height:100%; cursor:pointer;">
+                    </div>
+                </div>
+
+                <div class="label-title" style="margin-top:20px;">个性化微调</div>
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <div>
+                        <div class="label-title" style="font-weight:normal; font-size:12px;">标题底图源</div>
+                        <select id="title-bg-select" class="ui-select" onchange="changeTitleBgSource(this.value)">
+                            <option value="red">默认 (红色圆角梯形)</option>
+                            <option value="blue">蓝色底图 (title-bg-blue.png)</option>
+                            <option value="green">绿色底图 (title-bg-green.png)</option>
+                        </select>
+                    </div>
+
+                    <div class="mini-color-picker" onclick="document.getElementById('bg-picker').click()">
+                        <div id="bg-preview" style="width:20px; height:20px; border-radius:4px; background:#ffeff0; border:1px solid #ddd;"></div>
+                        <span>海报大背景</span>
+                        <input type="color" id="bg-picker" hidden oninput="updateSingleColor('--poster-bg-color', this.value, 'bg-preview')">
+                    </div>
+                    <div class="mini-color-picker" onclick="document.getElementById('ele-picker').click()">
+                        <div id="ele-preview" style="width:20px; height:20px; border-radius:4px; background:#ff4757; border:1px solid #ddd;"></div>
+                        <span>重点色 & 标题色</span>
+                        <input type="color" id="ele-picker" hidden oninput="updateElementColor(this.value)">
+                    </div>
+                    <div class="mini-color-picker" onclick="document.getElementById('box-picker').click()">
+                        <div id="box-preview" style="width:20px; height:20px; border-radius:4px; background:#fff8e1; border:1px solid #ddd;"></div>
+                        <span>权益框底色</span>
+                        <input type="color" id="box-picker" hidden oninput="updateBoxBgColor(this.value)">
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top:20px;">
+                <div class="label-title">文案颜色</div>
+                <div style="display:flex; gap:10px;">
+                    <button class="ui-btn" style="color:#ff4757" onmousedown="event.preventDefault(); applyTextColor('#ff4757')">红</button>
+                    <button class="ui-btn" style="color:#2196F3" onmousedown="event.preventDefault(); applyTextColor('#2196F3')">蓝</button>
+                    <button class="ui-btn" style="color:#333" onmousedown="event.preventDefault(); applyTextColor('#333')">黑</button>
+                    <div class="ui-btn" style="flex:0 0 50px;" onclick="document.getElementById('text-color-picker').click()">
+                        <span>🎨</span>
+                        <input type="color" id="text-color-picker" hidden oninput="applyTextColor(this.value)">
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top:auto; padding-top:20px;">
+                 <button id="download-btn" class="ui-btn primary" onclick="startDownload()" style="width:100%; padding:15px; font-size:16px; background:#1a1a1a;">
+                     ⬇️ 下载高清海报
+                 </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="preview-area" id="preview-area">
+        <div id="zoom-wrapper">
+            <div id="poster">
+                <div class="poster-logo">
+                    <img id="poster-logo-display" src="logo.png" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNjkgOTIiPjx0ZXh0IHg9IjEwIiB5PSI1MCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiM2NjYiPuaXoExvZ288L3RleHQ+PC9zdmc+'" alt="Logo">
+                </div>
+
+                <div class="poster-header" id="poster-header" style="background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTA4MCIgaGVpZ2h0PSI3MjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2UzZTNUzIiIC8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJhcmlhbCIgZm9udC1zaXplPSI0MCIgZmlsbD0iI2FhYWFhYSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+6K+35LiK5Lyg5a6j5Lyg5aSW6YOo5aSW5Zu+PC90ZXh0Pjwvc3ZnPg==');">
+                </div>
+                <div class="content-container">
+                    <div class="card">
+                        <div class="card-title-container" id="title-container-1">
+                            <span class="title-text-span" contenteditable="true">优惠权益</span>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="promo-text" contenteditable="true">
+                                下单购买火花逻辑思维48课包（直播课）<br>
+                                试听完课48小时内下单额额外赠送
+                            </div>
+                            <div class="benefit-box-wrapper">
+                                <div class="benefit-tag-label" contenteditable="true">轻课100节</div>
+                                <div class="benefit-box">
+                                    <div class="b-item" contenteditable="true"><span class="b-highlight">30节</span>益智动手魔方课</div>
+                                    <div class="b-item" contenteditable="true"><span class="b-highlight">10节</span>听故事学成语</div>
+                                    <div class="b-item" contenteditable="true"><span class="b-highlight">8节</span>火花小侦探推理</div>
+                                    <div class="b-item" contenteditable="true"><span class="b-highlight">12节</span>数独趣味课</div>
+                                    <div class="b-item" contenteditable="true"><span class="b-highlight">30节</span>一分钟读懂心理</div>
+                                    <div class="b-item" contenteditable="true"><span class="b-highlight">10节</span>古诗走着学</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title-container" id="title-container-2">
+                            <span class="title-text-span" contenteditable="true">活动规则</span>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="rule-list">
+                                <div class="rule-item">
+                                    <div class="rule-num">1</div>
+                                    <div contenteditable="true">该活动仅限购买逻辑思维48课时包且付费时间在活动期间的用户；</div>
+                                </div>
+                                <div class="rule-item">
+                                    <div class="rule-num">2</div>
+                                    <div contenteditable="true">录播课充值时间不晚于2026年2月10日；</div>
+                                </div>
+                                <div class="rule-item">
+                                    <div class="rule-num">3</div>
+                                    <div contenteditable="true">录播课观看有效期，自购课当日3年有效；</div>
+                                </div>
+                                <div class="rule-item">
+                                    <div class="rule-num">4</div>
+                                    <div contenteditable="true">课程如退费，赠送的活动权益需扣除，礼品及课程需退回或扣费；</div>
+                                </div>
+                                <div class="rule-item">
+                                    <div class="rule-num">5</div>
+                                    <div contenteditable="true">活动详情可咨询对应课程顾问。</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    </div>
+            </div>
+        </div>
+    </div>
+    
+    <div style="display:none;">
+        <img id="base-title-bg-red" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAABkCAYAAAC142GAAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMTZEaa/1AAAD0klEQVR4Xu3VMQ0AAAjDMO5f80jg4wQkpLqZ2d05AgQIECAwFwjI/==">
+        <img id="current-title-bg-img" src="title-bg-red.png" onerror="this.src=document.getElementById('base-title-bg-red').src">
+        <img id="current-header-img" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTA4MCIgaGVpZ2h0PSI3MjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2UzZTNUzIiIC8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJhcmlhbCIgZm9udC1zaXplPSI0MCIgZmlsbD0iI2FhYWFhYSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+6K+35LiK5Lyg5a6j5Lyg5aSW6YOo5aSW5Zu+PC90ZXh0Pjwvc3ZnPg==">
+    </div>
+
+    <div id="cloned-poster-container"></div>
+
+    <script>
+        function lightenColor(col, amt) {
+            var usePound = false;
+            if (col[0] == "#") { col = col.slice(1); usePound = true; }
+            var num = parseInt(col,16);
+            var r = (num >> 16) + amt;
+            var b = ((num >> 8) & 0x00FF) + amt;
+            var g = (num & 0x0000FF) + amt;
+            if (r > 255) r = 255; else if (r < 0) r = 0;
+            if (b > 255) b = 255; else if (b < 0) b = 0;
+            if (g > 255) g = 255; else if (g < 0) g = 0;
+            return (usePound?"#":"") + (g | (b << 8) | (r << 16)).toString(16);
+        }
+        function hexToHSL(hex) {
+            let r = 0, g = 0, b = 0;
+            if (hex.length == 4) { r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3]; } 
+            else if (hex.length == 7) { r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6]; }
+            r /= 255; g /= 255; b /= 255;
+            let cmin = Math.min(r,g,b), cmax = Math.max(r,g,b), delta = cmax - cmin;
+            let h = 0;
+            if (delta == 0) h = 0; else if (cmax == r) h = ((g - b) / delta) % 6; else if (cmax == g) h = (b - r) / delta + 2; else h = (r - g) / delta + 4;
+            h = Math.round(h * 60); if (h < 0) h += 360;
+            return h;
+        }
+
+        // --- 核心：图片染色 ---
+        function tintImage(imgSrc, color, callback) {
+            const img = new Image();
+            img.crossOrigin = "Anonymous"; // 尝试处理本地跨域
+            img.src = imgSrc;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width; canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                ctx.globalCompositeOperation = 'source-in';
+                ctx.fillStyle = color;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                callback(canvas.toDataURL());
+            };
+            // 如果本地文件加载失败(无服务环境)，则不染色直接回调原图或占位
+            img.onerror = () => { console.warn("Image load failed for tinting"); };
+        }
+
+        function applyTitleBg(color) {
+            const imgEl = document.getElementById('current-title-bg-img');
+            // 如果图片加载成功，使用它进行染色
+            if(imgEl.complete && imgEl.naturalWidth > 0) {
+                tintImage(imgEl.src, color, (tintedUrl) => {
+                    document.querySelectorAll('.card-title-container').forEach(el => {
+                        el.style.backgroundImage = `url('${tintedUrl}')`;
+                    });
+                });
+            } else {
+                // 如果图片还在加载，等加载完再染
+                imgEl.onload = () => applyTitleBg(color);
+            }
+        }
+
+        // --- 🌟 3. 切换标题底图源 ---
+        function changeTitleBgSource(val) {
+            const imgEl = document.getElementById('current-title-bg-img');
+            // 尝试读取本地对应颜色的文件
+            // 注意：这需要本地有 title-bg-blue.png 等文件
+            // 如果是 red (默认)，尝试读取 title-bg-red.png，失败回滚到 Base64
+            if(val === 'red') {
+                imgEl.src = "title-bg-red.png";
+                imgEl.onerror = () => imgEl.src = document.getElementById('base-title-bg-red').src;
+            } else {
+                imgEl.src = `title-bg-${val}.png`;
+                // 如果没有对应的蓝色/绿色图，就用红色图染色
+                imgEl.onerror = () => {
+                    console.log(`Missing title-bg-${val}.png, falling back to tinting red base.`);
+                    imgEl.src = document.getElementById('base-title-bg-red').src; 
+                };
+            }
+            // 切换源后重新应用当前颜色染色
+            setTimeout(() => {
+                const currentColor = getComputedStyle(document.documentElement).getPropertyValue('--element-color').trim();
+                applyTitleBg(currentColor);
+            }, 100);
+        }
+
+        // --- 缩放/拖拽 ---
+        let currentZoom = 0.35, translateX = 0, translateY = 0, isSpaceDown = false, isDragging = false, startX, startY;
+        const zoomWrapper = document.getElementById('zoom-wrapper');
+        const previewArea = document.getElementById('preview-area');
+
+        function initView() {
+            const posterW = 1080; const posterH = document.getElementById('poster').clientHeight;
+            translateX = -posterW / 2; translateY = -posterH / 2;
+            updateTransform();
+        }
+        function updateTransform() {
+            zoomWrapper.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentZoom})`;
+            document.getElementById('zoom-slider').value = Math.round(currentZoom * 100);
+        }
+        window.addEventListener('keydown', (e) => { if (e.code === 'Space' && !isSpaceDown) { isSpaceDown = true; previewArea.classList.add('grab-mode'); e.preventDefault(); } });
+        window.addEventListener('keyup', (e) => { if (e.code === 'Space') { isSpaceDown = false; previewArea.classList.remove('grab-mode', 'grabbing'); isDragging = false; } });
+        
+        // 🌟 修复滚轮 passive: false
+        previewArea.addEventListener('wheel', (e) => {
+            if (e.altKey) { 
+                e.preventDefault(); 
+                const delta = e.deltaY > 0 ? 0.9 : 1.1; 
+                currentZoom = Math.min(Math.max(currentZoom, 0.1), 3); 
+                updateTransform(); 
+            }
+        }, { passive: false });
+
+        previewArea.addEventListener('mousedown', (e) => { if (isSpaceDown) { isDragging = true; startX = e.clientX; startY = e.clientY; previewArea.classList.add('grabbing'); } });
+        window.addEventListener('mousemove', (e) => {
+            if (isDragging && isSpaceDown) {
+                const dx = e.clientX - startX; const dy = e.clientY - startY;
+                translateX += dx / currentZoom; translateY += dy / currentZoom;
+                startX = e.clientX; startY = e.clientY; updateTransform();
+            }
+        });
+        window.addEventListener('mouseup', () => { isDragging = false; previewArea.classList.remove('grabbing'); });
+
+        function setZoom(val) { currentZoom = val / 100; updateTransform(); }
+        function setHeaderHeight(val) {
+            document.documentElement.style.setProperty('--header-h', val + 'px');
+            document.getElementById('header-h-text').innerText = val + 'px';
+            document.getElementById('header-h-slider').value = val;
+        }
+
+        // HSB 智能配色
+        function applyGlobalTheme(hex, el) {
+            document.documentElement.style.setProperty('--theme-color', hex);
+            const h = hexToHSL(hex);
+            const paleColor = `hsl(${h}, 100%, 96%)`;
+            updateSingleColor('--poster-bg-color', paleColor, 'bg-preview');
+            document.getElementById('bg-picker').value = "#ffffff"; 
+            updateBoxBgColor(paleColor);
+            
+            const brightColor = `hsl(${h}, 100%, 75%)`;
+            updateBoxBorderColor(brightColor);
+            updateElementColor(hex);
+            if(el) { document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active')); el.classList.add('active'); }
+        }
+        function updateElementColor(hex) {
+            document.documentElement.style.setProperty('--element-color', hex);
+            document.documentElement.style.setProperty('--sub-tag-bg', hex);
+            document.getElementById('ele-preview').style.backgroundColor = hex;
+            document.getElementById('ele-picker').value = hex;
+            applyTitleBg(hex); 
+        }
+        function updateSingleColor(varName, hex, previewId) {
+            document.documentElement.style.setProperty(varName, hex);
+            if(previewId) document.getElementById(previewId).style.backgroundColor = hex;
+        }
+        function updateBoxBgColor(hex) {
+            document.documentElement.style.setProperty('--box-bg', hex);
+            document.getElementById('box-preview').style.backgroundColor = hex;
+            document.getElementById('box-picker').value = hex;
+        }
+        function updateBoxBorderColor(hex) { document.documentElement.style.setProperty('--box-border', hex); }
+        function applyTextColor(color) { document.execCommand('styleWithCSS', false, true); document.execCommand('foreColor', false, color); }
+
+        // 保存 & 下载
+        const STORAGE_KEY = 'poster_drafts_v30';
+        function saveDraftAction() {
+            const btn = document.getElementById('save-btn'); btn.innerText = '保存中...'; btn.disabled = true;
+            // 简易保存，不压缩大图了，直接存配置
+            const state = {
+                time: Date.now(),
+                colors: {
+                    theme: getComputedStyle(document.documentElement).getPropertyValue('--theme-color'),
+                    bg: getComputedStyle(document.documentElement).getPropertyValue('--poster-bg-color'),
+                    ele: getComputedStyle(document.documentElement).getPropertyValue('--element-color'),
+                    boxBg: getComputedStyle(document.documentElement).getPropertyValue('--box-bg'),
+                    boxBorder: getComputedStyle(document.documentElement).getPropertyValue('--box-border')
+                },
+                content: {
+                    t1: document.getElementById('txt-title-1').innerHTML,
+                    c1: document.getElementById('card-content-1').innerHTML,
+                    t2: document.getElementById('txt-title-2').innerHTML,
+                    c2: document.getElementById('card-content-2').innerHTML
+                },
+                headerHeight: getComputedStyle(document.documentElement).getPropertyValue('--header-h').replace('px','')
+            };
+            const drafts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            drafts.unshift(state); if(drafts.length > 5) drafts.pop();
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(drafts));
+                alert('✅ 草稿已保存 (图片需重新上传)');
+            } catch(e) { alert('保存失败'); }
+            btn.innerText = '保存当前'; btn.disabled = false; loadDrafts();
+        }
+        function loadDrafts() {
+            const list = document.getElementById('draft-list'); list.innerHTML = '';
+            const drafts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            document.getElementById('draft-count').innerText = drafts.length + '个';
+            drafts.forEach(d => {
+                const div = document.createElement('div'); div.className = 'draft-item';
+                div.innerHTML = `📝 草稿 ${new Date(d.time).toLocaleTimeString()}`;
+                div.onclick = () => {
+                    document.documentElement.style.setProperty('--theme-color', d.colors.theme);
+                    updateSingleColor('--poster-bg-color', d.colors.bg, 'bg-preview');
+                    updateElementColor(d.colors.ele);
+                    updateBoxBgColor(d.colors.boxBg);
+                    updateBoxBorderColor(d.colors.boxBorder);
+                    document.getElementById('txt-title-1').innerHTML = d.content.t1;
+                    document.getElementById('card-content-1').innerHTML = d.content.c1;
+                    document.getElementById('txt-title-2').innerHTML = d.content.t2;
+                    document.getElementById('card-content-2').innerHTML = d.content.c2;
+                    setHeaderHeight(d.headerHeight || 720);
+                };
+                list.appendChild(div);
+            });
+        }
+        function clearDrafts() { localStorage.removeItem(STORAGE_KEY); loadDrafts(); }
+
+        function startDownload() {
+            const btn = document.getElementById('download-btn'); btn.classList.add('disabled'); btn.innerText = '⏳ 合成中...';
+            const clone = document.getElementById('poster').cloneNode(true);
+            const container = document.getElementById('cloned-poster-container');
+            container.innerHTML = '';
+            
+            clone.style.transform = 'none'; clone.style.position = 'absolute'; clone.style.top = '0'; clone.style.left = '0';
+            clone.style.width = '1080px'; clone.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--poster-bg-color');
+            clone.style.overflow = 'visible';
+
+            // 修复头图
+            const hSrc = document.getElementById('current-header-img').src;
+            const hH = getComputedStyle(document.documentElement).getPropertyValue('--header-h');
+            const hDiv = clone.querySelector('.poster-header');
+            hDiv.style.backgroundImage = `url('${hSrc}')`; hDiv.style.height = hH; hDiv.style.backgroundSize = 'cover';
+
+            // 修复标题背景
+            const tSrc = document.querySelectorAll('.card-title-container')[0].style.backgroundImage;
+            clone.querySelectorAll('.card-title-container').forEach(el => el.style.backgroundImage = tSrc);
+
+            // Logo
+            const lSrc = document.querySelector('.poster-logo img').src;
+            clone.querySelector('.poster-logo img').src = lSrc;
+
+            container.appendChild(clone);
+
+            setTimeout(() => {
+                html2canvas(clone, { scale: 3, useCORS: true, backgroundColor: null }).then(canvas => {
+                    canvas.toBlob(blob => {
+                        saveAs(blob, 'Poster_HD.png');
+                        container.innerHTML = ''; btn.classList.remove('disabled'); btn.innerText = '⬇️ 下载高清海报';
+                    });
+                });
+            }, 800);
+        }
+
+        window.onload = () => { loadDrafts(); initView(); applyTitleBg('#ff4757'); }; 
+    </script>
+    <div id="cloned-poster-container" style="position:fixed; top:0; left:0; z-index:-999; opacity:0;"></div>
+</body>
+</html>
